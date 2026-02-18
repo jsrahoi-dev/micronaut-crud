@@ -1,0 +1,41 @@
+name: Build, Test, and Publish to S3
+
+on:
+  push:
+    branches: [jdbc]
+  workflow_dispatch:
+
+env:
+  S3_BUCKET: jsrahoi-devops-storage
+  S3_PREFIX: micronaut-crud
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: gradle
+
+      - name: Build and test
+        run: ./gradlew build shadowJar
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Upload JAR to S3
+        run: |
+          JAR_PATH="build/libs/micronaut-crud-0.1-all.jar"
+          S3_KEY="${S3_PREFIX}/$(basename "$JAR_PATH")"
+          aws s3 cp "$JAR_PATH" "s3://${S3_BUCKET}/${S3_KEY}"
+          echo "Uploaded to s3://${S3_BUCKET}/${S3_KEY}"
