@@ -12,6 +12,26 @@ env:
 jobs:
   build-and-publish:
     runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8
+        env:
+          MYSQL_ROOT_PASSWORD: password
+          MYSQL_DATABASE: mn_playground
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h localhost -u root -ppassword"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    env:
+      MICRONAUT_TEST_RESOURCES_ENABLED: "false"
+      DATASOURCES_DEFAULT_URL: jdbc:mysql://127.0.0.1:3306/mn_playground
+      DATASOURCES_DEFAULT_USERNAME: root
+      DATASOURCES_DEFAULT_PASSWORD: password
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4

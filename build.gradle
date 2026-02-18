@@ -49,6 +49,9 @@ graalvmNative.toolchainDetection = false
 micronaut {
     runtime("netty")
     testRuntime("junit5")
+    testResources {
+        enabled.set(providers.environmentVariable("MICRONAUT_TEST_RESOURCES_ENABLED").orElse("true").map { it != "false" })
+    }
     processing {
         incremental(true)
         annotations("com.piyal.*")
